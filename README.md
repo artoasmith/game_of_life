@@ -1,16 +1,16 @@
-###Game of life
+### Game of life
 
 [Github pages](https://artoasmith.github.io/game_of_life/)
 
-####Conway's Game of Life
+#### Conway's Game of Life
     
-######"Game of Life" redirects here. For other uses, see Game of Life (disambiguation).
+###### "Game of Life" redirects here. For other uses, see Game of Life (disambiguation).
 
-######"Conway game" redirects here. For Conway's surreal number game theory, see surreal number.
+###### "Conway game" redirects here. For Conway's surreal number game theory, see surreal number.
      
 The game is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input. One interacts with the Game of Life by creating an initial configuration and observing how it evolves, or, for advanced players, by creating patterns with particular properties.
 
-#####Rules
+##### Rules
 The universe of the Game of Life is an infinite, two-dimensional orthogonal grid of square cells, each of which is in one of two possible states, alive or dead, (or populated and unpopulated, respectively). Every cell interacts with its eight neighbours, which are the cells that are horizontally, vertically, or diagonally adjacent. At each step in time, the following transitions occur:
 
 1. Any live cell with fewer than two live neighbors dies, as if by underpopulation.
