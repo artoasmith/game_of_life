@@ -1,0 +1,270 @@
+<html>
+<head></head>
+<body>
+<script>
+    function setHeandler(){
+        var blocks = document.getElementsByClassName('block');
+        for(var i=0;i<blocks.length;i++){
+            blocks[i].addEventListener('click',function(){
+                var row = parseInt(this.getAttribute('data-row'));
+                var col = parseInt(this.getAttribute('data-col'));
+                field[row][col] = !field[row][col];
+                render(field);
+                setHeandler();
+            });
+        }
+    }
+    function startElem(){
+        if(paused === true) {
+            console.log('s');
+            interval = setInterval(run, speed);
+            paused = false;
+        }
+    }
+    function pauseElem(){
+        if(paused === false) {
+            console.log('p');
+            clearInterval(interval);
+            paused = true;
+            setHeandler();
+        }
+    }
+    function clearElem(){
+        iteration = 0;
+        field = [];
+        field = build(field);
+        clearInterval(interval);
+        paused = true;
+        render(field);
+        setHeandler();
+    }
+    function build(a){
+        for(var i=0;i<scale;i++){
+            var b = [];
+            for(var j=0;j<scale;j++){
+                b.push(false);
+            }
+            a.push(b);
+        }
+        return a;
+    }
+    function render(a) {
+        statistics(a);
+        while (elem.hasChildNodes()) {
+            elem.removeChild(elem.firstChild);
+        }
+        for(var i=0;i<scale;i++){
+            for(var j=0;j<scale;j++){
+                var div = document.createElement('div');
+                div.setAttribute('data-row',i);
+                div.setAttribute('data-col',j);
+                if(a[i][j]){
+                    div.className = 'live block';
+                } else {
+                    div.className = 'dead block';
+                }
+                elem.appendChild(div);
+            }
+        }
+    }
+
+    function statistics(a) {
+        document.getElementById('iteration-counter').innerHTML = iteration;
+
+        for(var i=0;i<scale;i++) {
+            for (var j = 0; j < scale; j++) {
+
+            }
+        }
+    }
+
+    function copyArray(a) {
+        var c = [];
+        for(var i=0; i<a.length; i++) {
+            c[i] = a[i].slice(0);
+        }
+        return c;
+    }
+
+    function gameOver() {
+        alert('game over');
+        clearElem();
+    }
+
+    function step(a){
+        iteration++;
+        var b = copyArray(a);
+        var changed = false;
+        for(var i = 0; i < scale; i++) {
+            for (var j = 0; j < scale; j++) {
+                var relatives = 0;
+
+                if (schereMap) {
+                    var topI = typeof a[(i-1)] != 'undefined' ? (i - 1) : (scale - 1);
+                    var botI = typeof a[(i+1)] != 'undefined' ? (i + 1) : 0;
+                    var leftJ = typeof a[topI][(j - 1)] != "undefined" ? (j - 1) : (scale - 1);
+                    var rightJ = typeof a[topI][(j + 1)] != "undefined" ? (j + 1) : 0;
+
+                    //top
+                    relatives += a[topI][leftJ] === true ? 1 : 0;
+                    relatives += a[topI][j] === true ? 1 : 0;
+                    relatives += a[topI][rightJ] === true ? 1 : 0;
+
+                    //mid
+                    relatives += a[i][leftJ] === true ? 1 : 0;
+                    relatives += a[i][rightJ] === true ? 1 : 0;
+
+                    //bot
+                    relatives += a[botI][leftJ] === true ? 1 : 0;
+                    relatives += a[botI][j] === true ? 1 : 0;
+                    relatives += a[botI][rightJ] === true ? 1 : 0;
+                } else {
+                    var topI = typeof a[(i-1)] != 'undefined' ? (i - 1) : false;
+                    var botI = typeof a[(i+1)] != 'undefined' ? (i + 1) : false;
+                    var leftJ = typeof a[i][(j - 1)] != "undefined" ? (j - 1) : false;
+                    var rightJ = typeof a[i][(j + 1)] != "undefined" ? (j + 1) : false;
+
+                    if (topI) {
+                        relatives += leftJ && a[topI][leftJ] === true ? 1 : 0;
+                        relatives += a[topI][j] === true ? 1 : 0;
+                        relatives += rightJ && a[topI][rightJ] === true ? 1 : 0;
+                    }
+
+                    //mid
+                    relatives += leftJ && a[i][leftJ] === true ? 1 : 0;
+                    relatives += rightJ && a[i][rightJ] === true ? 1 : 0;
+
+                    if (botI) {
+                        relatives += leftJ && a[botI][leftJ] === true ? 1 : 0;
+                        relatives += a[botI][j] === true ? 1 : 0;
+                        relatives += rightJ && a[botI][rightJ] === true ? 1 : 0;
+                    }
+                }
+
+                if (a[i][j] === true && relatives != 2 && relatives != 3) { //alive
+                    b[i][j] = false;
+                    changed = true;
+                } else if(a[i][j] === false  && relatives==3){ //dead
+                    b[i][j] = true;
+                    changed = true;
+                }
+            }
+        }
+        if (changed) {
+            render(b);
+        } else {
+            gameOver();
+        }
+        return b;
+    }
+
+    function run() {
+        field = step(field);
+    }
+    function ready() {
+        elem = document.getElementById('space');
+        field = build(field);
+
+        //planer
+        //field[1][2] = true;
+        //field[2][3] = true;
+        //field[3][1] = true;
+        //field[3][2] = true;
+        //field[3][3] = true;
+
+
+        //planer gun
+        field[6][1] = true;
+        field[6][2] = true;
+        field[7][1] = true;
+        field[7][2] = true;
+
+        field[5][5] = true;
+        field[5][6] = true;
+        field[6][5] = true;
+        field[6][6] = true;
+        field[7][5] = true;
+        field[7][6] = true;
+
+        field[3][10] = true;
+        field[4][10] = true;
+        field[4][11] = true;
+        field[5][11] = true;
+        field[5][12] = true;
+        field[6][11] = true;
+        field[6][12] = true;
+        field[6][13] = true;
+        field[7][11] = true;
+        field[7][12] = true;
+        field[8][10] = true;
+        field[8][11] = true;
+        field[9][10] = true;
+
+        field[7][20] = true;
+        field[7][22] = true;
+        field[8][21] = true;
+        field[8][22] = true;
+        field[9][21] = true;
+
+        field[1][27] = true;
+        field[2][27] = true;
+        field[2][29] = true;
+        field[3][28] = true;
+        field[3][30] = true;
+        field[4][28] = true;
+        field[4][31] = true;
+        field[5][28] = true;
+        field[5][30] = true;
+        field[6][27] = true;
+        field[6][29] = true;
+        field[7][27] = true;
+
+        field[4][35] = true;
+        field[4][36] = true;
+        field[5][35] = true;
+        field[5][36] = true;
+
+        interval = setInterval(run, speed);
+    }
+
+    var iteration = 0;
+    var scale = 40;
+    var elem = null;
+    var interval = null;
+    var paused = false;
+    var field = [];
+    var schereMap = false;
+    var speed = 100;
+
+    document.addEventListener("DOMContentLoaded", ready);
+</script>
+<style>
+    #space{
+        width: 600px;
+        height: 600px;
+        border: 1px solid #0f0f0f;
+    }
+    #space>div{
+        float: left;
+        width: 15px;
+        height: 15px;
+        border: 1px solid #0f0f0f;
+        box-sizing: border-box;
+    }
+    .dead{
+        background-color: #cfd1cf;
+    }
+
+    .live{
+        background-color: #960000;
+    }
+</style>
+
+<button onclick="startElem()">Start</button>
+<button onClick="pauseElem()">Pause</button>
+<button onClick="clearElem()">Clear</button>
+<div>Iterations: <span id="iteration-counter">0</span></div>
+<div id="space"></div>
+
+</body>
+</html>
