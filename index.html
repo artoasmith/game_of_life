@@ -14,11 +14,77 @@
             }
             this.setConfigs(configs);
 
-            this.setLiveCell(1,2);
-            this.setLiveCell(2,3);
-            this.setLiveCell(3,1);
-            this.setLiveCell(3,2);
-            this.setLiveCell(3,3);
+            //boat
+            //this.setLiveCell(1,2);
+            //this.setLiveCell(2,3);
+            //this.setLiveCell(3,1);
+            //this.setLiveCell(3,2);
+            //this.setLiveCell(3,3);
+
+            //pulsar
+            this.setLiveCell(13,15);
+            this.setLiveCell(13,16);
+            this.setLiveCell(13,17);
+
+            this.setLiveCell(13,21);
+            this.setLiveCell(13,22);
+            this.setLiveCell(13,23);
+
+            this.setLiveCell(15,13);
+            this.setLiveCell(16,13);
+            this.setLiveCell(17,13);
+
+            this.setLiveCell(21,13);
+            this.setLiveCell(22,13);
+            this.setLiveCell(23,13);
+
+            this.setLiveCell(25,15);
+            this.setLiveCell(25,16);
+            this.setLiveCell(25,17);
+
+            this.setLiveCell(25,21);
+            this.setLiveCell(25,22);
+            this.setLiveCell(25,23);
+
+            this.setLiveCell(15,25);
+            this.setLiveCell(16,25);
+            this.setLiveCell(17,25);
+
+            this.setLiveCell(21,25);
+            this.setLiveCell(22,25);
+            this.setLiveCell(23,25);
+
+            this.setLiveCell(18,15);
+            this.setLiveCell(18,16);
+            this.setLiveCell(18,17);
+
+            this.setLiveCell(18,21);
+            this.setLiveCell(18,22);
+            this.setLiveCell(18,23);
+
+            this.setLiveCell(20,15);
+            this.setLiveCell(20,16);
+            this.setLiveCell(20,17);
+
+            this.setLiveCell(20,21);
+            this.setLiveCell(20,22);
+            this.setLiveCell(20,23);
+
+            this.setLiveCell(15,18);
+            this.setLiveCell(16,18);
+            this.setLiveCell(17,18);
+
+            this.setLiveCell(21,18);
+            this.setLiveCell(22,18);
+            this.setLiveCell(23,18);
+
+            this.setLiveCell(15,20);
+            this.setLiveCell(16,20);
+            this.setLiveCell(17,20);
+
+            this.setLiveCell(21,20);
+            this.setLiveCell(22,20);
+            this.setLiveCell(23,20);
         }
 
         setConfigs(configs) {
@@ -167,11 +233,6 @@
             if (this.aliveCellCount) {
                 this.aliveCellCount.innerHTML = this.cellAlive;
             }
-
-            console.log({
-                'active cells': this.cellAlive,
-                'iterations': this.iterator
-            });
         }
 
         render() {
