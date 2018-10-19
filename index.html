@@ -2,168 +2,350 @@
 <head></head>
 <body>
 <script>
-    function setHeandler(){
-        var blocks = document.getElementsByClassName('block');
-        for(var i=0;i<blocks.length;i++){
-            blocks[i].addEventListener('click',function(){
-                var row = parseInt(this.getAttribute('data-row'));
-                var col = parseInt(this.getAttribute('data-col'));
-                field[row][col] = !field[row][col];
-                render(field);
-                setHeandler();
+
+    class main
+    {
+        constructor(containerId, size, configs) {
+            this.size = size;
+            this.initContainer(containerId);
+
+            if (typeof configs === "undefined") {
+                configs = {};
+            }
+            this.setConfigs(configs);
+
+            this.setLiveCell(1,2);
+            this.setLiveCell(2,3);
+            this.setLiveCell(3,1);
+            this.setLiveCell(3,2);
+            this.setLiveCell(3,3);
+        }
+
+        setConfigs(configs) {
+            this.initField();
+            this.initIterator();
+            this.cellAlive = 0;
+
+            this.borderedMap = (typeof configs.borderedMap !== "undefined" && configs.borderedMap);
+            this.liveCellColor = (typeof configs.liveCellColor !== "undefined" ? configs.liveCellColor : 'rgba(0, 200, 0, 0.7)');
+            this.gridColor = (typeof configs.gridColor !== "undefined" ? configs.gridColor : 'rgb(0, 0, 0)');
+            this.bgColor = (typeof configs.bgColor !== "undefined" ? configs.bgColor : 'rgb(200, 200, 200)');
+
+            this.iterationCount = (typeof configs.iterationCountId !== "undefined" ? document.getElementById(configs.iterationCountId) : false);
+            this.aliveCellCount = (typeof configs.aliveCellCountId !== "undefined" ? document.getElementById(configs.aliveCellCountId) : false);
+            this.stopBtn = (typeof configs.stopBtnId !== "undefined" ? document.getElementById(configs.stopBtnId) : false);
+            this.clearBtn = (typeof configs.clearBtnId !== "undefined" ? document.getElementById(configs.clearBtnId) : false);
+        }
+
+        initControllers() {
+            this.updateControllerView();
+            if (this.stopBtn) {
+                this.stopBtn.onclick = this.toggle.bind(this);
+            }
+
+            if (this.clearBtn) {
+                this.clearBtn.onclick = this.flush.bind(this);
+            }
+
+            this.container.onclick = this.draw.bind(this);
+        }
+
+        updateControllerView() {
+            if (this.stopBtn) {
+                this.stopBtn.innerHTML = this.interval ? 'STOP' : 'START';
+            }
+        }
+
+        toggle() {
+            if (this.interval) { //stop
+                this.pause();
+            } else {  //start
+                this.continue();
+            }
+            this.updateControllerView();
+        }
+
+        flush() {
+            this.pause();
+            this.initField();
+            this.initIterator();
+            this.statistic();
+            this.render();
+        }
+
+        draw(event) {
+            let coordinates = this.getCoordinates(event);
+            coordinates = this.getFieldCoordinates(coordinates);
+            this.toggleCell(coordinates.i, coordinates.j);
+            this.statistic();
+            this.render();
+        }
+
+        correctCoordinates(v) {
+            if (v < 0) {
+                return 0;
+            } else if (v >= this.size) {
+                return this.size - 1;
+            }
+            return v;
+        }
+
+        getFieldCoordinates(coordinates) {
+            return {
+                i: this.correctCoordinates(Math.floor(coordinates.y * this.size / this.container.height)),
+                j: this.correctCoordinates(Math.floor(coordinates.x * this.size/ this.container.height))
+            };
+        }
+
+        getCoordinates(e) {
+            let el = e.target,
+                x = 0,
+                y = 0;
+
+            while (el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
+                x += el.offsetLeft - el.scrollLeft;
+                y += el.offsetTop - el.scrollTop;
+                el = el.offsetParent;
+            }
+
+            x = e.clientX - x;
+            y = e.clientY - y;
+
+            return { x: x, y: y };
+        }
+
+        initContainer(id) {
+            this.container = document.getElementById(id);
+            this.conteinerContext = this.container.getContext('2d');
+            this.containerWidth = this.container.width;
+            this.containerHeight = this.container.height;
+            this.containerCell = parseInt(this.container.height / this.size , 10);
+        }
+
+        initField() {
+            this.field = [];
+        }
+
+        initIterator() {
+            this.iterator = 0;
+        }
+
+        toggleCell(i, j) {
+            if (typeof this.field[i] === "undefined") {
+                this.field[i] = [];
+            }
+
+            if (typeof this.field[i][j] !== "undefined" && this.field[i][j]) {
+                this.field[i][j] = false;
+            } else {
+                this.field[i][j] = true;
+            }
+        }
+
+        setLiveCell(i, j) {
+            if (typeof this.field[i] === "undefined") {
+                this.field[i] = [];
+            }
+
+            this.field[i][j] = true;
+        }
+
+        statistic() {
+            this.cellAlive = 0;
+            for (let i in this.field) {
+                for (let j in this.field[i]) {
+                    if (this.field[i][j]) {
+                        this.cellAlive++;
+                    }
+                }
+            }
+
+            if (this.iterationCount) {
+                this.iterationCount.innerHTML = this.iterator;
+            }
+
+            if (this.aliveCellCount) {
+                this.aliveCellCount.innerHTML = this.cellAlive;
+            }
+
+            console.log({
+                'active cells': this.cellAlive,
+                'iterations': this.iterator
             });
         }
-    }
-    function startElem(){
-        if(paused === true) {
-            console.log('s');
-            interval = setInterval(run, speed);
-            paused = false;
-        }
-    }
-    function pauseElem(){
-        if(paused === false) {
-            console.log('p');
-            clearInterval(interval);
-            paused = true;
-            setHeandler();
-        }
-    }
-    function clearElem(){
-        iteration = 0;
-        field = [];
-        field = build(field);
-        clearInterval(interval);
-        paused = true;
-        render(field);
-        setHeandler();
-    }
-    function build(a){
-        for(var i=0;i<scale;i++){
-            var b = [];
-            for(var j=0;j<scale;j++){
-                b.push(false);
+
+        render() {
+            //clear
+            this.conteinerContext.clearRect(0, 0, this.containerWidth, this.containerHeight);
+
+            //fill field
+            this.conteinerContext.fillStyle = this.bgColor;
+            this.conteinerContext.fillRect(0, 0, this.containerWidth, this.containerHeight);
+
+            //fill grid
+            this.conteinerContext.fillStyle = this.gridColor;
+            for (let i = this.containerCell; i < this.containerHeight; i += this.containerCell) {
+                this.conteinerContext.moveTo(i, 0);
+                this.conteinerContext.lineTo(i, this.containerHeight);
+                this.conteinerContext.stroke();
+                this.conteinerContext.moveTo(0, i);
+                this.conteinerContext.lineTo(this.containerHeight, i);
+                this.conteinerContext.stroke();
             }
-            a.push(b);
-        }
-        return a;
-    }
-    function render(a) {
-        statistics(a);
-        while (elem.hasChildNodes()) {
-            elem.removeChild(elem.firstChild);
-        }
-        for(var i=0;i<scale;i++){
-            for(var j=0;j<scale;j++){
-                var div = document.createElement('div');
-                div.setAttribute('data-row',i);
-                div.setAttribute('data-col',j);
-                if(a[i][j]){
-                    div.className = 'live block';
-                } else {
-                    div.className = 'dead block';
+
+            //fill live cells
+            this.conteinerContext.fillStyle = this.liveCellColor;
+            for (let i in this.field) {
+                for (let j in this.field[i]) {
+                    if (!this.field[i][j])
+                        continue;
+
+                    let x1 = j * this.containerCell;
+                    let y1 = i * this.containerCell;
+                    this.conteinerContext.fillRect(x1, y1, this.containerCell, this.containerCell);
                 }
-                elem.appendChild(div);
             }
         }
-    }
 
-    function statistics(a) {
-        document.getElementById('iteration-counter').innerHTML = iteration;
+        getRelativesCount(i, j) {
+            i = parseInt(i, 10);
+            j = parseInt(j, 10);
+            let relatives = 0;
+            let top = i - 1;
+            let right = j + 1;
+            let bot = i + 1;
+            let left = j - 1;
 
-        for(var i=0;i<scale;i++) {
-            for (var j = 0; j < scale; j++) {
-
+            if (!this.borderedMap) {
+                top = top < 0 ? this.size - 1 : top;
+                right = right >= this.size ? 0 : right;
+                bot = bot >= this.size ? 0 : bot;
+                left = left < 0 ? this.size - 1 : left;
             }
+
+            //top
+            if (typeof this.field[top] !== "undefined") {
+                relatives += (typeof this.field[top][left] !== "undefined" && this.field[top][left] ? 1 : 0);
+                relatives += (typeof this.field[top][j] !== "undefined" && this.field[top][j] ? 1 : 0);
+                relatives += (typeof this.field[top][right] !== "undefined" && this.field[top][right] ? 1 : 0);
+            }
+
+            //mid
+            if (typeof this.field[i] !== "undefined") {
+                relatives += (typeof this.field[i][left] !== "undefined" && this.field[i][left] ? 1 : 0);
+                relatives += (typeof this.field[i][right] !== "undefined" && this.field[i][right] ? 1 : 0);
+            }
+
+            //bot
+            if (typeof this.field[bot] !== "undefined") {
+                relatives += (typeof this.field[bot][left] !== "undefined" && this.field[bot][left] ? 1 : 0);
+                relatives += (typeof this.field[bot][j] !== "undefined" && this.field[bot][j] ? 1 : 0);
+                relatives += (typeof this.field[bot][right] !== "undefined" && this.field[bot][right] ? 1 : 0);
+            }
+
+            return relatives;
         }
-    }
 
-    function copyArray(a) {
-        var c = [];
-        for(var i=0; i<a.length; i++) {
-            c[i] = a[i].slice(0);
-        }
-        return c;
-    }
-
-    function gameOver() {
-        alert('game over');
-        clearElem();
-    }
-
-    function step(a){
-        iteration++;
-        var b = copyArray(a);
-        var changed = false;
-        for(var i = 0; i < scale; i++) {
-            for (var j = 0; j < scale; j++) {
-                var relatives = 0;
-
-                if (schereMap) {
-                    var topI = typeof a[(i-1)] != 'undefined' ? (i - 1) : (scale - 1);
-                    var botI = typeof a[(i+1)] != 'undefined' ? (i + 1) : 0;
-                    var leftJ = typeof a[topI][(j - 1)] != "undefined" ? (j - 1) : (scale - 1);
-                    var rightJ = typeof a[topI][(j + 1)] != "undefined" ? (j + 1) : 0;
-
-                    //top
-                    relatives += a[topI][leftJ] === true ? 1 : 0;
-                    relatives += a[topI][j] === true ? 1 : 0;
-                    relatives += a[topI][rightJ] === true ? 1 : 0;
-
-                    //mid
-                    relatives += a[i][leftJ] === true ? 1 : 0;
-                    relatives += a[i][rightJ] === true ? 1 : 0;
-
-                    //bot
-                    relatives += a[botI][leftJ] === true ? 1 : 0;
-                    relatives += a[botI][j] === true ? 1 : 0;
-                    relatives += a[botI][rightJ] === true ? 1 : 0;
-                } else {
-                    var topI = typeof a[(i-1)] != 'undefined' ? (i - 1) : false;
-                    var botI = typeof a[(i+1)] != 'undefined' ? (i + 1) : false;
-                    var leftJ = typeof a[i][(j - 1)] != "undefined" ? (j - 1) : false;
-                    var rightJ = typeof a[i][(j + 1)] != "undefined" ? (j + 1) : false;
-
-                    if (topI) {
-                        relatives += leftJ && a[topI][leftJ] === true ? 1 : 0;
-                        relatives += a[topI][j] === true ? 1 : 0;
-                        relatives += rightJ && a[topI][rightJ] === true ? 1 : 0;
-                    }
-
-                    //mid
-                    relatives += leftJ && a[i][leftJ] === true ? 1 : 0;
-                    relatives += rightJ && a[i][rightJ] === true ? 1 : 0;
-
-                    if (botI) {
-                        relatives += leftJ && a[botI][leftJ] === true ? 1 : 0;
-                        relatives += a[botI][j] === true ? 1 : 0;
-                        relatives += rightJ && a[botI][rightJ] === true ? 1 : 0;
+        updateField(newField) {
+            this.initField();
+            for (let i in newField) {
+                for (let j in newField[i]) {
+                    if (newField[i][j]) {
+                        this.setLiveCell(i, j);
                     }
                 }
-
-                if (a[i][j] === true && relatives != 2 && relatives != 3) { //alive
-                    b[i][j] = false;
-                    changed = true;
-                } else if(a[i][j] === false  && relatives==3){ //dead
-                    b[i][j] = true;
-                    changed = true;
-                }
             }
         }
-        if (changed) {
-            render(b);
-        } else {
-            gameOver();
+
+        iteration() {
+            let nexStep = [];
+            let gameOver = true;
+
+            for (let i = 0; i < this.size; i++) {
+                for (let j = 0; j < this.size; j++) {
+                    let relatives = this.getRelativesCount(i, j);
+
+                    if (typeof this.field[i] === "undefined") { //dead cells row
+                        if (relatives === 3) {
+                            if (typeof  nexStep[i] === "undefined") {
+                                nexStep[i] = [];
+                            }
+                            nexStep[i][j] = true;
+                            gameOver = false;
+                        }
+                    } else {
+                        if (typeof this.field[i][j] === "undefined") {
+                            this.field[i][j] = false;
+                        }
+
+                        if (this.field[i][j] === true && relatives !== 2 && relatives !== 3) { //alive cell become dead
+                            gameOver = false;
+                        } else if(this.field[i][j] === false  && relatives === 3){ //dead cell become alive
+                            if (typeof  nexStep[i] === "undefined") {
+                                nexStep[i] = [];
+                            }
+                            nexStep[i][j] = true;
+                            gameOver = false;
+                        } else if (this.field[i][j] === true) { // alive cell stay alive
+                            if (typeof  nexStep[i] === "undefined") {
+                                nexStep[i] = [];
+                            }
+                            nexStep[i][j] = true;
+                        }
+                    }
+                }
+            }
+
+            if (gameOver) {
+                this.gameOver();
+            } else {
+                this.updateField(nexStep);
+                this.iterator++;
+            }
         }
-        return b;
+
+        gameOver() {
+            this.pause();
+            this.statistic();
+            this.updateControllerView();
+            alert('game over: ' + this.iterator + " steps and " + this.cellAlive + " cell alive");
+
+        }
+
+        pause() {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
+
+        continue() {
+            this.interval = setInterval(this.step.bind(this), this.speed);
+        }
+
+        step() {
+            this.iteration();
+            this.statistic();
+            this.render();
+        }
+
+        run(speed) {
+            this.speed = speed;
+            this.interval = setInterval(this.step.bind(this), this.speed);
+            this.initControllers();
+        }
     }
 
-    function run() {
-        field = step(field);
-    }
     function ready() {
         elem = document.getElementById('space');
         field = build(field);
+
+        game = new main('space2', scale, {
+            borderedMap: true,
+            iterationCountId: 'iteration-count',
+            aliveCellCountId: 'alive-cell-count',
+            stopBtnId: 'stop-btn',
+            clearBtnId: 'clear-btn',
+        });
+        game.run(speed);
 
         //planer
         //field[1][2] = true;
@@ -224,7 +406,7 @@
         field[5][35] = true;
         field[5][36] = true;
 
-        interval = setInterval(run, speed);
+        //interval = setInterval(run, speed);
     }
 
     var iteration = 0;
@@ -234,37 +416,121 @@
     var paused = false;
     var field = [];
     var schereMap = false;
-    var speed = 100;
+    var speed = 1000;
 
+    var game = null;
     document.addEventListener("DOMContentLoaded", ready);
 </script>
 <style>
-    #space{
-        width: 600px;
-        height: 600px;
-        border: 1px solid #0f0f0f;
-    }
-    #space>div{
-        float: left;
-        width: 15px;
-        height: 15px;
-        border: 1px solid #0f0f0f;
-        box-sizing: border-box;
-    }
-    .dead{
-        background-color: #cfd1cf;
+    body {
+        color: #000000;
+        background-color: #263136;
     }
 
-    .live{
-        background-color: #960000;
+    .content {
+        display: block;
+        width: 900px;
+        margin: auto;
+        margin-top: 100px;
+        margin-bottom: 20px;
+        padding: 10px;
+        position: relative;
+        border-radius: 3px;
+        background: #ebeff5;
+        border-top: 3px solid #d2d6de;
+        box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+        text-align: center;
+    }
+
+    .box {
+        padding: 10px;
+        display: block;
+        min-height: 60px;
+        background: #fff;
+        box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+        border-radius: 2px;
+        margin-bottom: 15px;
+    }
+
+    #space2 {
+        border: 1px solid rgba(68, 68, 68, 0.54);
+        margin: auto;
+        display: block;
+    }
+
+    .controllers {
+        text-align: center;
+    }
+
+    .controllers .btn {
+        margin: 5px 5px 0 0;
+    }
+
+    .btn {
+        min-width: 150px;
+        color: #fff;
+        background-color: #269abc;
+        border-color: #1b6d85;
+        border-radius: 3px;
+        box-shadow: none;
+    }
+
+    .btn.focus, .btn:focus, .btn:hover {
+        color: #333;
+        text-decoration: none;
+    }
+
+    .btn.active, .btn:active {
+        background-image: none;
+        outline: 0;
+        -webkit-box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+        box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+    }
+
+    .main {
+        position: relative;
+        min-height: 670px;
+    }
+
+    .right {
+        top: 0;
+        left: 210px;
+        position: absolute;
+        width: 670px;
+    }
+
+    .stats {
+        top: 0;
+        left: 0;
+        position: absolute;
+        width: 200px;
     }
 </style>
+<div class="content">
+   <div class="main">
+       <div class="stats">
+           <div class="controllers box">
+               <button class="btn" id="stop-btn">STOP</button>
+               <button class="btn" id="clear-btn">CLEAR</button>
+           </div>
+           <div class="info box">
+               <p>Iteration: <span id="iteration-count">0</span></p>
+               <p>Alive cells: <span id="alive-cell-count">0</span></p>
+           </div>
+           <div class="text box">
+               <p>asdad s sada sd as</p>
+           </div>
+       </div>
+       <div class="right box">
+           <div class="settings" style="display: none;">
 
-<button onclick="startElem()">Start</button>
-<button onClick="pauseElem()">Pause</button>
-<button onClick="clearElem()">Clear</button>
-<div>Iterations: <span id="iteration-counter">0</span></div>
-<div id="space"></div>
-
+           </div>
+           <canvas id="space2" width="640" height="640"></canvas>
+       </div>
+   </div>
+</div>
 </body>
 </html>

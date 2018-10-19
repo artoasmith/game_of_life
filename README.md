@@ -3,10 +3,6 @@
 [Github pages](https://artoasmith.github.io/game_of_life/)
 
 #### Conway's Game of Life
-    
-###### "Game of Life" redirects here. For other uses, see Game of Life (disambiguation).
-
-###### "Conway game" redirects here. For Conway's surreal number game theory, see surreal number.
      
 The game is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input. One interacts with the Game of Life by creating an initial configuration and observing how it evolves, or, for advanced players, by creating patterns with particular properties.
 
