@@ -335,9 +335,6 @@
     }
 
     function ready() {
-        elem = document.getElementById('space');
-        field = build(field);
-
         game = new main('space2', scale, {
             borderedMap: true,
             iterationCountId: 'iteration-count',
@@ -347,6 +344,7 @@
         });
         game.run(speed);
 
+        field = [];
         //planer
         //field[1][2] = true;
         //field[2][3] = true;
